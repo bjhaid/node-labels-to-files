@@ -23,6 +23,43 @@ func readFromFile(fileName string) (string, error) {
 	return string(bytes), nil
 }
 
+func TestParseFlags(t *testing.T) {
+	n := &nodeLabelsToFiles{config: &config{}}
+	t.Run("Consumes environment variables", func(*testing.T) {
+		kubeconfig := "/etc/kubeconfig"
+		os.Setenv("KUBECONFIG", kubeconfig)
+		nodeName := "my-awesome-node"
+		os.Setenv("NODENAME", nodeName)
+		directory := "/etc/node-labels-to-files"
+		os.Setenv("DIRECTORY", directory)
+		mode := Once
+		os.Setenv("MODE", mode)
+		os.Setenv("DELETE_STALE_FILES", "false")
+		n.parseFlags()
+
+		if n.config.kubeconfig != kubeconfig {
+			t.Errorf("Expected kubeconfig to be '%s', got; %v",
+				kubeconfig, n.config.kubeconfig)
+		}
+		if n.config.nodeName != nodeName {
+			t.Errorf("Expected nodeName to be '%s', got; %v",
+				nodeName, n.config.nodeName)
+		}
+		if n.config.directory != directory {
+			t.Errorf("Expected directory to be '%s', got; %v",
+				directory, n.config.directory)
+		}
+		if n.config.mode != mode {
+			t.Errorf("Expected mode to be '%s', got; %v",
+				mode, n.config.mode)
+		}
+		if n.config.deleteStaleFiles != false {
+			t.Errorf("Expected deleteStaleFiles to be 'false', got; %v",
+				n.config.deleteStaleFiles)
+		}
+	})
+}
+
 func TestCreateFileFromLabels(t *testing.T) {
 	n := &nodeLabelsToFiles{config: &config{}}
 	dir, err := ioutil.TempDir("", "nodeLabelsToFiles-test")

@@ -55,34 +55,55 @@ func (c *config) Validate() error {
 	return nil
 }
 
-func (n *nodeLabelsToFiles) parseFlags() {
+func (n *nodeLabelsToFiles) parseFlags() error {
 	if home := homedir.HomeDir(); home != "" {
 		flag.StringVar(
 			&(n.config.kubeconfig), "kubeconfig",
 			filepath.Join(home, ".kube", "config"),
-			"(optional) absolute path to the kubeconfig file")
+			"(optional) absolute path to the kubeconfig file. Can be overridden via "+
+				"the environment variable KUBECONFIG")
 	} else {
-		flag.StringVar(&(n.config.kubeconfig), "kubeconfig",
-			"", "absolute path to the kubeconfig file")
+		flag.StringVar(&(n.config.kubeconfig), "kubeconfig", "",
+			"absolute path to the kubeconfig file. Can be overridden via the "+
+				"environment variable KUBECONFIG")
 	}
 	flag.BoolVar(&(n.config.deleteStaleFiles), "delete-stale-files", true,
 		"This determines if node-labels-to-path will delete stale files or "+
-			"files it is not aware of or keep them, by default it will delete them")
+			"files it is not aware of or keep them, by default it will delete "+
+			"them. Can be overriden via the environment variable DELETE_STALE_FILES")
 	flag.StringVar(&(n.config.directory), "directory", "", "Directory to "+
 		"write the node labels in, if the directory does not exist "+
-		"node-labels-to-files will create it")
+		"node-labels-to-files will create it. Can be overridden via the "+
+		"environment variable DIRECTORY")
 	flag.StringVar(&(n.config.mode), "mode", Always, "This determines "+
 		"the mode n works in, when it is set to once it retrieves the node "+
 		"labels and exits, if set to always it creates a watch on the node and "+
 		"will detect and update the directory to reflect the labels when they "+
-		"change on the node. Acceptable options is either of "+Always+"|"+Once)
+		"change on the node. Acceptable options is either of "+Always+"|"+Once+
+		"Can be overriden via the environment variable MODE")
 	flag.StringVar(&(n.config.nodeName), "nodename", "", "Name of node "+
-		"whose label n should retrieve")
+		"whose label n should retrieve. Can be overridden via the environment"+
+		"variable NODENAME")
 	klog.InitFlags(nil)
 	flag.Parse()
-	if err := n.config.Validate(); err != nil {
-		klog.Fatalf("Missing configuration: %s", err)
+	if kubeconfig := os.Getenv("KUBECONFIG"); kubeconfig != "" {
+		n.config.kubeconfig = kubeconfig
 	}
+	if nodeName := os.Getenv("NODENAME"); nodeName != "" {
+		n.config.nodeName = nodeName
+	}
+	if directory := os.Getenv("DIRECTORY"); directory != "" {
+		n.config.directory = directory
+	}
+	if mode := os.Getenv("MODE"); mode != "" {
+		n.config.mode = mode
+	}
+	if deleteStaleFiles := os.Getenv("DELETE_STALE_FILES"); deleteStaleFiles != "" {
+		if deleteStaleFiles == "false" {
+			n.config.deleteStaleFiles = false
+		}
+	}
+	return n.config.Validate()
 }
 
 func (n *nodeLabelsToFiles) getConfig() (*rest.Config, error) {
@@ -234,7 +255,9 @@ func (n *nodeLabelsToFiles) process(closeChan <-chan string) {
 
 func main() {
 	nodeLabelsToFiles := &nodeLabelsToFiles{config: &config{}}
-	nodeLabelsToFiles.parseFlags()
+	if err := nodeLabelsToFiles.parseFlags(); err != nil {
+		klog.Fatalf("Missing configuration: %s", err)
+	}
 	nodeLabelsToFiles.buildClient()
 	klog.Info("Starting node-labels-to-files")
 	labels, err := nodeLabelsToFiles.getNodeLabels()

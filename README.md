@@ -29,16 +29,16 @@ to false
 ### Usage
 
 ```bash
-./node-labels-to-files -h
-Usage of ./node-labels-to-files:
+Usage of ./node-label-to-files:
   -alsologtostderr
         log to standard error as well as files
   -delete-stale-files
-        This determines if node-labels-to-path will delete stale files or files it is not aware of or keep them, by default it will delete them (default true)
+        This determines if node-labels-to-path will delete stale files or files it is not aware of or keep them, by default it will delete them. Can be overriden via the env
+ironment variable DELETE_STALE_FILES (default true)
   -directory string
-        Directory to write the node labels in, if the directory does not exist node-labels-to-files will create it
+        Directory to write the node labels in, if the directory does not exist node-labels-to-files will create it. Can be overridden via the environment variable DIRECTORY
   -kubeconfig string
-        (optional) absolute path to the kubeconfig file (default "~/.kube/config")
+        (optional) absolute path to the kubeconfig file. Can be overridden via the environment variable KUBECONFIG (default "/home/bjhaid/.kube/config")
   -log_backtrace_at value
         when logging hits line file:N, emit a stack trace
   -log_dir string
@@ -50,9 +50,11 @@ Usage of ./node-labels-to-files:
   -logtostderr
         log to standard error instead of files (default true)
   -mode string
-        This determines the mode n works in, when it is set to once it retrieves the node labels and exits, if set to always it creates a watch on the node and will detect and update the directory to reflect the labels when they change on the node. Acceptable options is either of always|once (default "always")
+        This determines the mode n works in, when it is set to once it retrieves the node labels and exits, if set to always it creates a watch on the node and will detect a
+nd update the directory to reflect the labels when they change on the node. Acceptable options is either of always|onceCan be overriden via the environment variable MODE (de
+fault "always")
   -nodename string
-        Name of node whose label n should retrieve
+        Name of node whose label n should retrieve. Can be overridden via the environmentvariable NODENAME
   -skip_headers
         If true, avoid header prefixes in the log messages
   -skip_log_headers
@@ -68,8 +70,8 @@ Usage of ./node-labels-to-files:
 ### Example:
 
 ```bash
-./node-labels-to-files \
-  -mode=once -v=2 \
+$> ./node-labels-to-files \
+  -mode=once \
   -delete-stale-files=false \
   -nodename=ip-my-awesome-node.ec2.internal \
   -directory=${PWD}/foo
@@ -92,6 +94,34 @@ foo
     └── node
 
     5 directories, 9 files
+```
+
+or
+
+```bash
+$> DIRECTORY=/tmp/foo NODENAME=ip-my-awesome-node.ec2.internal MODE=once ./node-label-to-files
+I0721 11:50:58.105222   24181 main.go:262] Starting node-labels-to-files
+I0721 11:50:58.304381   24181 main.go:184] Creating sub-directory: /tmp/foo/kops.k8s.io
+I0721 11:50:58.304535   24181 main.go:184] Creating sub-directory: /tmp/foo/node-role.kubernetes.io
+I0721 11:50:58.304588   24181 main.go:184] Creating sub-directory: /tmp/foo/failure-domain.beta.kubernetes.io
+I0721 11:50:58.304668   24181 main.go:184] Creating sub-directory: /tmp/foo/beta.kubernetes.io
+I0721 11:50:58.304725   24181 main.go:184] Creating sub-directory: /tmp/foo/kubernetes.io
+$> tree /tmp/foo
+/tmp/foo
+├── beta.kubernetes.io
+│   ├── arch
+│   ├── instance-type
+│   └── os
+├── failure-domain.beta.kubernetes.io
+│   ├── region
+│   └── zone
+├── kops.k8s.io
+│   └── instancegroup
+├── kubernetes.io
+│   ├── hostname
+│   └── role
+└── node-role.kubernetes.io
+    └── node
 ```
 
 ### Contributing
