@@ -5,7 +5,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -108,7 +110,13 @@ func (n *nodeLabelsToFiles) filesToDelete(labels map[string]string) ([]string,
 	labelsToPaths := make(map[string]string)
 
 	for label, value := range labels {
-		labelsToPaths[filepath.Join(n.config.directory, label)] = value
+		labelWithPath := filepath.Join(n.config.directory, label)
+		labelsToPaths[labelWithPath] = value
+		dir := path.Dir(labelWithPath)
+		for dir != strings.TrimSuffix(n.config.directory, "/") {
+			labelsToPaths[dir] = ""
+			dir = path.Dir(dir)
+		}
 	}
 
 	err := filepath.Walk(
@@ -130,7 +138,8 @@ func (n *nodeLabelsToFiles) deleteStaleFiles(labels map[string]string) error {
 	}
 
 	for _, file := range files {
-		os.Remove(file)
+		klog.V(2).Info("Removing stale file: ", file)
+		os.RemoveAll(file)
 	}
 
 	return nil
@@ -180,7 +189,7 @@ func (n *nodeLabelsToFiles) getNodeLabels() (map[string]string, error) {
 }
 
 func (n *nodeLabelsToFiles) processOnce(labels map[string]string) {
-	klog.Info("Starting to process information for ", n.config.nodeName)
+	klog.V(2).Info("Refreshing Labels information for: ", n.config.nodeName)
 	klog.V(2).Infof("Retrieved labels: %v for node: %s", labels,
 		n.config.nodeName)
 	err := n.createFileFromLabels(labels)
