@@ -98,7 +98,21 @@ func TestFilesToDelete(t *testing.T) {
 	t.Run("Works when labels includes paths directories", func(t *testing.T) {
 		n := &nodeLabelsToFiles{config: &config{directory: "test"}}
 		labels := map[string]string{"baz": "", "resources/bar": ""}
-		expected := []string{"test/resources", "test/resources/foo"}
+		expected := []string{"test/resources/foo"}
+		actual, err := n.filesToDelete(labels)
+		if err != nil {
+			t.Errorf("Did not expect error got: %s", err)
+		}
+		sort.Strings(expected)
+		sort.Strings(actual)
+		if !reflect.DeepEqual(expected, actual) {
+			t.Errorf("Expected files: %v, got: %v", expected, actual)
+		}
+	})
+	t.Run("Works when configured directory ends with a /", func(t *testing.T) {
+		n := &nodeLabelsToFiles{config: &config{directory: "test/"}}
+		labels := map[string]string{"baz": "", "resources/bar": ""}
+		expected := []string{"test/resources/foo"}
 		actual, err := n.filesToDelete(labels)
 		if err != nil {
 			t.Errorf("Did not expect error got: %s", err)
