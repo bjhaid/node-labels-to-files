@@ -29,7 +29,7 @@ to false
 ### Usage
 
 ```bash
-Usage of ./node-label-to-files:
+Usage of ./node-labels-to-files:
   -alsologtostderr
         log to standard error as well as files
   -delete-stale-files
@@ -99,7 +99,7 @@ foo
 or
 
 ```bash
-$> DIRECTORY=/tmp/foo NODENAME=ip-my-awesome-node.ec2.internal MODE=once ./node-label-to-files
+$> DIRECTORY=/tmp/foo NODENAME=ip-my-awesome-node.ec2.internal MODE=once ./node-labels-to-files
 I0721 11:50:58.105222   24181 main.go:262] Starting node-labels-to-files
 I0721 11:50:58.304381   24181 main.go:184] Creating sub-directory: /tmp/foo/kops.k8s.io
 I0721 11:50:58.304535   24181 main.go:184] Creating sub-directory: /tmp/foo/node-role.kubernetes.io
@@ -123,6 +123,30 @@ $> tree /tmp/foo
 └── node-role.kubernetes.io
     └── node
 ```
+
+Running in docker:
+
+```bash
+docker run \
+  --rm \
+  -v /tmp/foo:/tmp/foo \
+  -v ~/.kube/config:/etc/kubeconfig \
+  -e KUBECONFIG=/etc/kubeconfig \
+  -e DIRECTORY=/tmp/foo \
+  -e NODENAME=ip-my-awesome-node.ec2.internal \
+  -e MODE=once \
+  bjhaid/node-labels-to-files:v0.0.2 \
+  /usr/bin/node-labels-to-files
+I0721 17:10:57.688212       1 main.go:262] Starting node-labels-to-files
+I0721 17:10:58.219404       1 main.go:184] Creating sub-directory: /tmp/foo/failure-domain.beta.kubernetes.io
+I0721 17:10:58.220011       1 main.go:184] Creating sub-directory: /tmp/foo/beta.kubernetes.io
+I0721 17:10:58.220641       1 main.go:184] Creating sub-directory: /tmp/foo/kops.k8s.io
+I0721 17:10:58.221016       1 main.go:184] Creating sub-directory: /tmp/foo/kubernetes.io
+I0721 17:10:58.221551       1 main.go:184] Creating sub-directory: /tmp/foo/node-role.kubernetes.io
+```
+
+Note in Kubernetes you will not need to set the KUBECONFIG environment
+variable.
 
 ### Contributing
 
