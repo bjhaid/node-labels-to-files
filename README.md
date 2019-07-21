@@ -1,5 +1,7 @@
 ## node-labels-to-files
 
+[![Build Status](https://api.travis-ci.org/bjhaid/node-labels-to-files.svg?branch=master)](https://travis-ci.org/bjhaid/node-labels-to-files)
+
 This is mainly [Tim Hockin's
 idea](https://docs.google.com/document/d/1fH64mEfZH597luup-ZBfBNkiTVjfoFYGEa-G1G_TM6A/edit#heading=h.1fewofmjczp2), I just implemented it.
 
