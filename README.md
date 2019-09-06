@@ -148,6 +148,11 @@ I0721 17:10:58.221551       1 main.go:184] Creating sub-directory: /tmp/foo/node
 Note in Kubernetes you will not need to set the KUBECONFIG environment
 variable.
 
+
+### Kubernetes Example
+
+[k8s-example.yaml](examples/k8s-example.yaml)
+
 ### Contributing
 
 Make your changes, run:
