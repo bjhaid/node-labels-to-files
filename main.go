@@ -106,8 +106,17 @@ func (n *nodeLabelsToFiles) parseFlags() error {
 	return n.config.Validate()
 }
 
+func Exists(name string) bool {
+    if _, err := os.Stat(name); err != nil {
+        if os.IsNotExist(err) {
+            return false
+        }
+    }
+    return true
+}
+
 func (n *nodeLabelsToFiles) getConfig() (*rest.Config, error) {
-	if n.config.kubeconfig == "" {
+	if n.config.kubeconfig == "" || !Exists(n.config.kubeconfig) { 
 		return rest.InClusterConfig()
 	}
 	return clientcmd.BuildConfigFromFlags("", n.config.kubeconfig)
