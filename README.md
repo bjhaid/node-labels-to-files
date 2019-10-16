@@ -135,7 +135,7 @@ docker run \
   -e DIRECTORY=/tmp/foo \
   -e NODENAME=ip-my-awesome-node.ec2.internal \
   -e MODE=once \
-  bjhaid/node-labels-to-files:v0.0.2 \
+  bjhaid/node-labels-to-files:v0.0.3 \
   /usr/bin/node-labels-to-files
 I0721 17:10:57.688212       1 main.go:262] Starting node-labels-to-files
 I0721 17:10:58.219404       1 main.go:184] Creating sub-directory: /tmp/foo/failure-domain.beta.kubernetes.io
