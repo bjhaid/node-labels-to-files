@@ -71,7 +71,7 @@ func TestCreateFileFromLabels(t *testing.T) {
 	labels := map[string]string{
 		"arch": "amd64",
 		"failure-domain.beta.kubernetes.io/region": "us-east"}
-	err = n.createFileFromLabels(labels)
+	n.createFileFromLabels(labels)
 	if err != nil {
 		t.Error(err)
 	}
@@ -85,6 +85,34 @@ func TestCreateFileFromLabels(t *testing.T) {
 		if expectedContent != actualContent {
 			t.Errorf("Expected: %s, got: %s", expectedContent, actualContent)
 		}
+	}
+}
+
+func TestCreateFileSkipsFiles(t *testing.T) {
+	n := &nodeLabelsToFiles{config: &config{}}
+	dir, err := ioutil.TempDir("", "nodeLabelsToFiles-test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+	n.config.directory = dir
+	fileName := "node-role.kubernetes.io"
+	expectedContent := "worker"
+	labels := map[string]string{fileName: expectedContent}
+	n.createFileFromLabels(labels)
+	labels = map[string]string{"node-role.kubernetes.io/node": "selinux-disabled:true"}
+	n.createFileFromLabels(labels)
+	if err != nil {
+		t.Error(err)
+	}
+	actualContent, err := readFromFile(filepath.Join(n.config.directory,
+		fileName))
+	if err != nil {
+		t.Error(err)
+	}
+
+	if expectedContent != actualContent {
+		t.Errorf("Expected: %s, got: %s", expectedContent, actualContent)
 	}
 }
 
