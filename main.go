@@ -107,16 +107,16 @@ func (n *nodeLabelsToFiles) parseFlags() error {
 }
 
 func Exists(name string) bool {
-    if _, err := os.Stat(name); err != nil {
-        if os.IsNotExist(err) {
-            return false
-        }
-    }
-    return true
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
 }
 
 func (n *nodeLabelsToFiles) getConfig() (*rest.Config, error) {
-	if n.config.kubeconfig == "" || !Exists(n.config.kubeconfig) { 
+	if n.config.kubeconfig == "" || !Exists(n.config.kubeconfig) {
 		return rest.InClusterConfig()
 	}
 	return clientcmd.BuildConfigFromFlags("", n.config.kubeconfig)
@@ -175,15 +175,15 @@ func (n *nodeLabelsToFiles) deleteStaleFiles(labels map[string]string) error {
 	return nil
 }
 
-func (n *nodeLabelsToFiles) createFileFromLabels(labels map[string]string) error {
+func (n *nodeLabelsToFiles) createFileFromLabels(labels map[string]string) {
 	for fileName, fileContent := range labels {
 		err := writeToFile(filepath.Join(n.config.directory, fileName),
 			fileContent)
+		klog.V(5).Infof("Creating file: %s, with content: %s", fileName, fileContent)
 		if err != nil {
-			return err
+			klog.Errorf("Failed creating file: %s, due to: %s", fileName, err)
 		}
 	}
-	return nil
 }
 
 func writeToFile(fileName string, fileContent string) error {
@@ -222,11 +222,8 @@ func (n *nodeLabelsToFiles) processOnce(labels map[string]string) {
 	klog.V(2).Info("Refreshing Labels information for: ", n.config.nodeName)
 	klog.V(2).Infof("Retrieved labels: %v for node: %s", labels,
 		n.config.nodeName)
-	err := n.createFileFromLabels(labels)
-	if err != nil {
-		klog.Fatalf("Encountered: %s, while trying to create files from "+
-			"labels: %v", err, labels)
-	}
+	n.createFileFromLabels(labels)
+	var err error
 	if n.config.deleteStaleFiles {
 		err = n.deleteStaleFiles(labels)
 	} else {
