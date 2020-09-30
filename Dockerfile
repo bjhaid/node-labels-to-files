@@ -15,4 +15,8 @@ RUN go test \
 
 FROM debian:buster-slim
 
+RUN apt-get update -y && \
+    apt-get dist-upgrade -u -y && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /usr/bin/node-labels-to-files /usr/bin/
